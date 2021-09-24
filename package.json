@@ -6,14 +6,16 @@
   "author": "lee jeongmin <danmin20@khu.ac.kr>",
   "license": "MIT",
   "scripts": {
-    "dev": "webpack serve --open --hot",
+    "dev": "webpack serve --open --hot --mode=development",
     "build": "webpack --mode=production"
   },
   "devDependencies": {
     "@babel/cli": "^7.15.7",
     "@babel/core": "^7.15.5",
     "@babel/preset-env": "^7.15.6",
+    "@babel/preset-typescript": "^7.15.0",
     "babel-loader": "^8.2.2",
+    "html-loader": "^2.1.2",
     "html-webpack-plugin": "^5.3.2",
     "mini-css-extract-plugin": "^2.3.0",
     "ts-loader": "^9.2.5",

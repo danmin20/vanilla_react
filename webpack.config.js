@@ -1,66 +1,58 @@
-const path = require("path");
-const webpack = require("webpack");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable no-undef */
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
-const prod = process.env.NODE_ENV === "production";
-
-module.exports = {
-  mode: prod ? "production" : "development",
-  devtool: prod ? "none" : "inline-source-map",
-  output: {
-    filename: "bundle.js",
-    path: path.resolve(__dirname, "dist"),
-  },
-  module: {
-    rules: [
-      {
-        test: /.js$/,
-        use: "babel-loader",
-        exclude: /node_modules/,
-      },
-      {
-        test: /\.ts?$/,
-        use: ["babel-loader", "ts-loader"],
-        exclude: /node_modules/,
-      },
-      {
-        test: /\.s[ac]ss$/i,
-        use: [
-          {
-            loader: MiniCssExtractPlugin.loader,
-            options: {
-              publicPath: "/dist/style/",
-            },
+module.exports = () => {
+  return {
+    entry: './src/index.ts',
+    module: {
+      rules: [
+        {
+          test: /\.(ts|js)$/,
+          use: {
+            loader: 'babel-loader',
           },
-          "css-loader",
-          "sass-loader",
-        ],
-      },
-      {
-        test: /\.(svg|jpeg|jpg|png|ico)$/,
-        loader: "file-loader",
-        options: {
-          name: "assets/[name].[ext]?[hash]",
+          exclude: ['/node_modules'],
         },
-      },
+        {
+          test: /\.html$/,
+          use: [
+            {
+              loader: 'html-loader',
+              options: { minimize: true },
+            },
+          ],
+        },
+        {
+          test: /\.(css|scss)$/,
+          use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
+        },
+        {
+          test: /\.svg$/,
+          use: {
+            loader: 'file-loader',
+          },
+        },
+      ],
+    },
+    plugins: [
+      new HtmlWebpackPlugin({ template: './src/index.html' }),
+      new MiniCssExtractPlugin({
+        filename: '[name].css',
+        chunkFilename: '[id].css',
+      }),
     ],
-  },
-  plugins: [
-    new HtmlWebpackPlugin({
-      filename: "index.html", //Name of file in ./dist/
-      template: "src/index.html", //Name of template in ./src
-      //   favicon: "favicon.ico",
-    }),
-    new MiniCssExtractPlugin({
-      filename: "[name].css",
-      chunkFilename: "[id].css",
-    }),
-    new webpack.HotModuleReplacementPlugin(),
-  ],
-  optimization: { minimize: true },
-  resolve: {
-    modules: ["node_modules"],
-    extensions: [".js", ".json", ".ts", ".css", ".scss"],
-  },
+    optimization: { minimize: true },
+    resolve: {
+      modules: ['node_modules'],
+      extensions: ['.ts', '.js', '.json', '.scss'],
+      alias: {
+        '@': path.join(__dirname, 'src'),
+      },
+    },
+    output: { path: path.join(__dirname, './dist/src'), filename: '[name].js' },
+    devtool: 'source-map',
+  };
 };
