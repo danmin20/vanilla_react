@@ -1,9 +1,9 @@
-// import MainPage from "./pages/MainPage";
 import { $ } from './utils/selector';
 import Component from './core/Component';
 import { Route, Router } from './core/Router';
 // import "./styles/index.scss";
 // import "./styles/theme.scss";
+import Main from './pages/Main/index';
 
 export default class App extends Component {
   $app: HTMLElement;
@@ -44,7 +44,7 @@ export default class App extends Component {
 
     if ($content) {
       const route: Route = {
-        // "/": new MainPage(),
+        '/': new Main(),
       };
       new Router(route, $content);
     }
