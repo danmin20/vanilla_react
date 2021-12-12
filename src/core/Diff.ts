@@ -28,11 +28,7 @@ export const isDiffrentNode = (node1: Element, node2: Element) => {
   return false;
 };
 
-const applyDiff = (
-  parentNode: Element,
-  realNode: Element,
-  virtualNode: Element,
-) => {
+const diff = (parentNode: Element, realNode: Element, virtualNode: Element) => {
   if (realNode && !virtualNode) {
     realNode.remove();
     return;
@@ -53,8 +49,8 @@ const applyDiff = (
 
   const max = Math.max(realChildren.length, virtualChildren.length);
   for (let i = 0; i < max; i++) {
-    applyDiff(realNode, realChildren[i], virtualChildren[i]);
+    diff(realNode, realChildren[i], virtualChildren[i]);
   }
 };
 
-export default applyDiff;
+export default diff;

@@ -15,7 +15,7 @@ export default class Header extends Component<PropsType, StateType> {
     return jsx`
       <div class='header'>
 
-        <div onClick=${() => $router.push('/')}>MaiPage</div>
+        <div onClick=${() => $router.push('/')}>MainPage</div>
 
         <div onClick=${() => $router.push('/sub')}>SubPage</div>
 

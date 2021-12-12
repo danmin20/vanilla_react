@@ -9,6 +9,9 @@
     "dev": "webpack serve --open --hot --mode=development",
     "build": "webpack --mode=production"
   },
+  "bin": {
+    "vanilla_react": "./bin/generate-app.js"
+  },
   "devDependencies": {
     "@babel/cli": "^7.15.7",
     "@babel/core": "^7.15.5",
