@@ -1,80 +1,127 @@
-import Component from './Component';
+import { updateRealDOM } from '../index';
+import Component from '@/core/Component';
+import { customEventEmitter } from '@/utils/helpers';
 
 export type Route = {
-  [key: string]: Component;
+  path: string;
+  page: typeof Component;
+  redirect?: string;
 };
 
-const DEFAULT_PATH: string = '/';
+class Router {
+  $app: HTMLElement;
+  routes: {
+    [key: string]: typeof Component;
+  } = {};
+  fallback: string = '/';
 
-export type LinkProps = {
-  to: string;
-};
+  constructor({
+    $app,
+    routes,
+    fallback = '/',
+  }: {
+    $app: HTMLElement;
+    routes: Route[];
+    fallback?: string;
+  }) {
+    this.$app = $app;
+    this.fallback = fallback;
 
-export default class Link extends Component<LinkProps> {
-  constructor(props: LinkProps) {
-    super(props);
+    this.generateRoutes(routes);
 
-    this.init();
-    this.$element.addEventListener('click', this.onClick.bind(this));
+    this.initEvent();
   }
 
-  render() {
-    return `<div>${this.props.to}</div>`;
-  }
+  generateRoutes(routes: Route[]): void {
+    this.routes = {};
 
-  onClick() {
-    const routeEvent = new CustomEvent('pushstate', {
-      detail: {
-        pathname: this.props.to,
-      },
+    routes.forEach((route: Route) => {
+      this.routes[route.path] = route.page;
     });
+  }
 
-    window.dispatchEvent(routeEvent);
+  initEvent() {
+    document.addEventListener(
+      'moveroutes',
+      this.moveroutesHandler.bind(this) as EventListener,
+    );
+    window.addEventListener(
+      'popstate',
+      this.popstateHandler.bind(this) as EventListener,
+    );
+  }
+
+  hasRoute(path: string) {
+    return typeof this.routes[path] !== 'undefined';
+  }
+
+  getNotFoundRouter() {
+    return this.routes['not_found'];
+  }
+
+  getRouter(path: string) {
+    return this.routes[path];
+  }
+
+  moveroutesHandler(event: CustomEvent) {
+    const path: string = event.detail.path;
+    history.pushState(event.detail, '', path);
+
+    this.renderComponent(path);
+  }
+
+  popstateHandler() {
+    this.renderComponent(history.state.path);
+  }
+
+  renderComponent(path: string) {
+    let route = this.getNotFoundRouter();
+    const regex = /\w{1,}$/;
+
+    if (this.hasRoute(path)) {
+      route = this.getRouter(path);
+    } else if (regex.test(path)) {
+      route = this.getRouter(path.replace(regex, ':id'));
+    } else {
+      route = this.getRouter(this.fallback);
+    }
+
+    const page = new route({});
+    if (this.$app.lastElementChild)
+      this.$app.replaceChild(page.$dom, this.$app.lastElementChild);
+    else this.$app.appendChild(page.$dom);
+    updateRealDOM();
+  }
+
+  push(path: string) {
+    customEventEmitter('moveroutes', {
+      ...history.state,
+      path,
+    });
   }
 }
 
-export class Router {
-  $root: HTMLElement;
-  routes: Route;
-  history: string[];
+export let $router: {
+  push: (path: string) => void;
+};
 
-  constructor(routes: Route, $root: HTMLElement) {
-    if (!routes[DEFAULT_PATH])
-      console.error('default directory should be exist');
+export function initRouter({
+  $app,
+  routes,
+}: {
+  $app: HTMLElement;
+  routes: Route[];
+}): void {
+  const router = new Router({ $app, routes });
 
-    this.routes = routes;
-    this.$root = $root;
-    this.history = [];
+  $router = {
+    push: path => router.push(path),
+  };
 
-    this.initEvent();
-    this.handleRoute();
-  }
-
-  initEvent(): void {
-    window.addEventListener('pushstate', (e: any) => {
-      const path = e.detail.pathname;
-      window.history.pushState({}, '', path);
-      this.history.push(path);
-      this.handleRoute();
-    });
-
-    window.addEventListener('popstate', (e: any) => {});
-  }
-
-  getPath(): string {
-    return this.routes[window.location.pathname]
-      ? window.location.pathname
-      : DEFAULT_PATH;
-  }
-
-  getRoute(): HTMLElement {
-    const path = this.getPath();
-    return this.routes[path].$element;
-  }
-
-  handleRoute(): void {
-    const $currRoute: HTMLElement = this.getRoute();
-    this.$root.replaceWith($currRoute);
-    this.$root = $currRoute;
-  }
+  customEventEmitter(
+    'moveroutes',
+    history.state ?? {
+      path: '/',
+    },
+  );
 }
